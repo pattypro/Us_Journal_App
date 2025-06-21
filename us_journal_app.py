@@ -2,9 +2,30 @@ import streamlit as st
 from datetime import date
 import os
 from PIL import Image
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+# 🔧 Ensure entries folder exists BEFORE anything else
+if not os.path.exists("entries"):
+    os.makedirs("entries")
 
 # ---------- CONFIG ----------
 st.set_page_config(page_title="Us Journal 💑", page_icon="💖", layout="centered")
+
+# ---------- GOOGLE DRIVE SETUP ----------
+@st.cache_resource
+def connect_drive():
+    gauth = GoogleAuth()
+    gauth.LoadClientConfigFile("client_secrets.json")
+    gauth.LocalWebserverAuth()
+    return GoogleDrive(gauth)
+
+drive = connect_drive()
+
+def upload_to_drive(filename, filepath, mimetype="text/plain"):
+    gfile = drive.CreateFile({'title': filename, 'mimeType': mimetype})
+    gfile.SetContentFile(filepath)
+    gfile.Upload()
 
 # ---------- SIMPLE PASSWORD LOGIN ----------
 def check_login():
@@ -33,31 +54,38 @@ with st.form("entry_form"):
 
     if submitted:
         entry_filename = f"{entry_date}_{mood.replace(' ', '_')}.txt"
-        with open(f"entries/{entry_filename}", "w", encoding="utf-8") as file:
+        entry_path = f"entries/{entry_filename}"
+
+        # Save locally
+        with open(entry_path, "w", encoding="utf-8") as file:
             file.write(f"{entry_date} | {mood} | {message}\n")
 
+        # Upload journal text
+        upload_to_drive(entry_filename, entry_path)
+
         if image:
-            image_path = f"entries/{entry_date}_{mood.replace(' ', '_')}.jpg"
+            image_filename = f"{entry_date}_{mood.replace(' ', '_')}.jpg"
+            image_path = f"entries/{image_filename}"
             with open(image_path, "wb") as img_file:
                 img_file.write(image.read())
 
-        st.success("Entry saved! 💖")
+            # Upload image
+            upload_to_drive(image_filename, image_path, "image/jpeg")
+
+        st.success("Entry and photo saved to Google Drive! 💖")
 
 # ---------- JOURNAL VIEWER ----------
 st.write("### 📖 View Past Entries")
 
-if os.path.exists("entries"):
-    entry_files = sorted([f for f in os.listdir("entries") if f.endswith(".txt")], reverse=True)
-    for file_name in entry_files:
-        with open(f"entries/{file_name}", "r", encoding="utf-8") as file:
-            content = file.readline().strip()
-            if content:
-                edate, emood, emessage = content.split(" | ")
-                with st.expander(f"{edate} {emood}"):
-                    st.write(emessage)
-                    image_name = file_name.replace(".txt", ".jpg")
-                    image_path = f"entries/{image_name}"
-                    if os.path.exists(image_path):
-                        st.image(image_path, caption="Memory Photo", use_column_width=True)
-else:
-    st.info("No entries yet. Start journaling your love story! 🥰")
+entry_files = sorted([f for f in os.listdir("entries") if f.endswith(".txt")], reverse=True)
+for file_name in entry_files:
+    with open(f"entries/{file_name}", "r", encoding="utf-8") as file:
+        content = file.readline().strip()
+        if content:
+            edate, emood, emessage = content.split(" | ")
+            with st.expander(f"{edate} {emood}"):
+                st.write(emessage)
+                image_name = file_name.replace(".txt", ".jpg")
+                image_path = f"entries/{image_name}"
+                if os.path.exists(image_path):
+                    st.image(image_path, caption="Memory Photo", use_column_width=True)

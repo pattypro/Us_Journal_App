@@ -1,16 +1,28 @@
-# 💖 Us Journal with Photos - A Private Couple’s Journal Web App
+# 💖 Us Journal with Google Drive Upload (Fixed Version)
 
-This is a secure and romantic Streamlit-based web app for couples to write journal entries, upload memory photos, and grow together.
+A private, secure, and romantic journal app for couples — built using Streamlit, with cloud backup via Google Drive.
 
-## Features
-- Write and save daily/weekly journal entries
-- Upload one photo per entry
-- View entries with date, mood, message, and optional image
-- Simple password login
+## 🌟 Features
+- Write daily/weekly journal entries
+- Upload a memory photo for each entry
+- View saved entries with date, mood, and message
+- Password login to protect your love story
+- Automatically uploads data to Google Drive
 
-## Getting Started
-1. Run with: `streamlit run us_journal_app.py`
-2. Photos and text are saved in `entries/` folder
-3. Deploy via [Streamlit Cloud](https://streamlit.io/cloud)
+## 🛠️ Requirements
+- Python 3.x
+- `streamlit`, `pydrive`, `pillow`
+
+## 🔐 Setup Google Drive API
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a project and enable **Google Drive API**
+3. Create **OAuth credentials** (Desktop app)
+4. Download `client_secrets.json` and place it in the same folder as the app
+
+## ▶️ How to Run
+```bash
+pip install streamlit pydrive pillow
+streamlit run us_journal_app.py
+```
 
 Default password: `oursecret123`
