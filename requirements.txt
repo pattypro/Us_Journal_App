@@ -1,5 +1,2 @@
 streamlit
-pydrive
-oauth2client
-python-dotenv
 requests
